@@ -31,6 +31,11 @@ where
         &self,
         input: Input,
     ) -> impl Future<Output = Result<Self::Output, Self::Error>> + Send;
+
+    /// should conns be treated as secure?
+    fn is_secure(&self) -> bool {
+        true
+    }
 }
 
 impl<Input> Acceptor<Input> for ()
@@ -41,5 +46,9 @@ where
     type Error = Infallible;
     async fn accept(&self, input: Input) -> Result<Self::Output, Self::Error> {
         Ok(input)
+    }
+
+    fn is_secure(&self) -> bool {
+        false
     }
 }

@@ -2,9 +2,10 @@ use std::{
     fmt::Debug,
     net::IpAddr,
     ops::{Deref, DerefMut},
+    sync::Arc,
 };
 use trillium::{Conn, Handler, HeaderName, HeaderValues, Method};
-use trillium_http::{Conn as HttpConn, Synthetic};
+use trillium_http::{Conn as HttpConn, ServerConfig, Synthetic};
 
 type SyntheticConn = HttpConn<Synthetic>;
 
@@ -33,6 +34,17 @@ impl TestConn {
         <M as TryInto<Method>>::Error: Debug,
     {
         Self(HttpConn::new_synthetic(method.try_into().unwrap(), path.into(), body).into())
+    }
+
+    /// assigns a shared server config to this test conn
+    pub fn with_server_config(self, server_config: Arc<ServerConfig>) -> Self {
+        let inner = self
+            .0
+            .into_inner::<Synthetic>()
+            .with_server_config(server_config)
+            .into();
+
+        Self(inner)
     }
 
     /**

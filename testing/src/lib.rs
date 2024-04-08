@@ -65,7 +65,7 @@ trillium-testing = { version = "0.2", features = ["smol"] }
 mod assertions;
 
 mod test_transport;
-use std::{future::Future, process::Termination};
+use std::{future::Future, process::Termination, sync::Arc};
 pub use test_transport::TestTransport;
 
 mod test_conn;
@@ -83,7 +83,9 @@ pub mod prelude {
     pub use trillium::{Conn, Method, Status};
 }
 
+use trillium::{Handler, Info};
 pub use trillium::{Method, Status};
+use trillium_http::ServerConfig;
 pub use url::Url;
 
 /// runs the future to completion on the current thread
@@ -92,9 +94,12 @@ pub fn block_on<Fut: Future>(fut: Fut) -> Fut::Output {
 }
 
 /// initialize a handler
-pub fn init(handler: &mut impl trillium::Handler) {
-    let mut info = "testing".into();
-    block_on(async move { handler.init(&mut info).await })
+pub fn init(handler: &mut impl Handler) -> Arc<ServerConfig> {
+    let mut info = Info::from(ServerConfig::default());
+    info.insert_state(runtime());
+    info.insert_state(runtime().into());
+    block_on(handler.init(&mut info));
+    Arc::new(info.into())
 }
 
 // these exports are used by macros
@@ -192,5 +197,18 @@ where
     Fut: Future<Output = Output>,
     Output: Termination,
 {
+    let _ = env_logger::builder().is_test(true).try_init();
     block_on(test())
+}
+
+/// a harness that includes the runtime
+#[track_caller]
+pub fn with_runtime<F, Fut, Output>(test: F) -> Output
+where
+    F: FnOnce(Runtime) -> Fut,
+    Fut: Future<Output = Output>,
+    Output: Termination,
+{
+    let runtime = runtime();
+    runtime.clone().block_on(test(runtime.into()))
 }

@@ -1,4 +1,4 @@
-use crate::{received_body::read_buffered, Buffer, Conn, Headers, Method, Swansong, TypeSet};
+use crate::{received_body::read_buffered, Buffer, Conn, Headers, Method, ServerConfig, TypeSet};
 use futures_lite::{AsyncRead, AsyncWrite};
 use std::{
     fmt::{self, Debug, Formatter},
@@ -6,6 +6,7 @@ use std::{
     net::IpAddr,
     pin::Pin,
     str,
+    sync::Arc,
     task::{Context, Poll},
 };
 use trillium_macros::AsyncWrite;
@@ -39,10 +40,8 @@ pub struct Upgrade<Transport> {
     /// already. It is your responsibility to process these bytes
     /// before reading directly from the transport.
     pub buffer: Buffer,
-    /// A [`Swansong`] which can and should be used to gracefully shut
-    /// down any long running streams or futures associated with this
-    /// upgrade
-    pub swansong: Swansong,
+    /// The [`ServerConfig`] shared for this server
+    pub server_config: Arc<ServerConfig>,
     /// the ip address of the connection, if available
     pub peer_ip: Option<IpAddr>,
 }
@@ -63,7 +62,7 @@ impl<Transport> Upgrade<Transport> {
             transport,
             buffer,
             state: TypeSet::new(),
-            swansong: Swansong::new(),
+            server_config: Arc::default(),
             peer_ip: None,
         }
     }
@@ -114,7 +113,7 @@ impl<Transport> Upgrade<Transport> {
             state: self.state,
             buffer: self.buffer,
             request_headers: self.request_headers,
-            swansong: self.swansong,
+            server_config: self.server_config,
             peer_ip: self.peer_ip,
         }
     }
@@ -127,9 +126,9 @@ impl<Transport> Debug for Upgrade<Transport> {
             .field("path", &self.path)
             .field("method", &self.method)
             .field("buffer", &self.buffer)
-            .field("swansong", &self.swansong)
+            .field("server_config", &self.server_config)
             .field("state", &self.state)
-            .field("transport", &"..")
+            .field("transport", &format_args!(".."))
             .field("peer_ip", &self.peer_ip)
             .finish()
     }
@@ -144,7 +143,7 @@ impl<Transport> From<Conn<Transport>> for Upgrade<Transport> {
             state,
             transport,
             buffer,
-            swansong,
+            server_config,
             peer_ip,
             ..
         } = conn;
@@ -156,7 +155,7 @@ impl<Transport> From<Conn<Transport>> for Upgrade<Transport> {
             state,
             transport,
             buffer,
-            swansong,
+            server_config,
             peer_ip,
         }
     }

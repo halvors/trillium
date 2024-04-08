@@ -37,7 +37,7 @@ let mut handler = StaticFileHandler::new(crate_relative_path!("examples/files"))
 use trillium_testing::prelude::*;
 # use trillium::Handler;
 
-handler.init(&mut "testing".into()).await;
+# init(&mut handler);
 
 assert_ok!(
     get("/").run_async(&handler).await,
