@@ -900,6 +900,9 @@ where
         // }
 
         write!(output_buffer, "\r\n")?;
+
+        log::debug!("{:#?}", output_buffer);
+
         Ok(())
     }
 
