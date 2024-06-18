@@ -889,15 +889,15 @@ where
         //   Date: Mon, 17 Jun 2024 23:17:18 GMT
         //   X-Signature: tFabqX8ic2XtweIUDcKsldHcb4h8wlcCVRnp2Tp0iV86Z3f3vN2u7LoA3wxPozx3E0S/y7FRMKZgLoO486fZQxg50bu1jKp1B+ts4+VDS827UJ/zfCvypYzl58tIx6kfPydajNEPfwKUvWs3tw3g2pLJx7YVYOJSRCj7vM+pDx6tCdGERob7UJC6muC8Mg5Z5oY47/ZCtlrSFRJ8nJHADy7KttGbWD8ZBFS0nEC6UwpqnAJLOOpK9oME/mDgm3PjpiPzG7dJsW3NhQTX8mpYIfkRwekvGBQoky2Sd932rwFPzN8Rr5Cn1v0GBHMjlhASKsG++e6UVHgqK7W5mNqboQ==
         //   Content-Length: 1418
-        write_header(output_buffer, Server.into(), &self.response_headers.remove(Server).unwrap())?;
-        write_header(output_buffer, ContentType.into(), &self.response_headers.remove(ContentType).unwrap())?;
-        write_header(output_buffer, Date.into(), &self.response_headers.remove(Date).unwrap())?;
-        write_header(output_buffer, "X-Signature".into(), &self.response_headers.remove("X-Signature").unwrap())?;
-        write_header(output_buffer, ContentLength.into(), &self.response_headers.remove(ContentLength).unwrap())?;
+        // write_header(output_buffer, Server.into(), &self.response_headers.remove(Server).unwrap())?;
+        // write_header(output_buffer, ContentType.into(), &self.response_headers.remove(ContentType).unwrap())?;
+        // write_header(output_buffer, Date.into(), &self.response_headers.remove(Date).unwrap())?;
+        // write_header(output_buffer, "X-Signature".into(), &self.response_headers.remove("X-Signature").unwrap())?;
+        // write_header(output_buffer, ContentLength.into(), &self.response_headers.remove(ContentLength).unwrap())?;
 
-        // for (name, values) in &self.response_headers {
-        //     write_header(output_buffer, name, values)?;
-        // }
+        for (name, values) in &self.response_headers {
+            write_header(output_buffer, name, values)?;
+        }
 
         write!(output_buffer, "\r\n")?;
 
