@@ -895,9 +895,9 @@ where
         write_header(output_buffer, "X-Signature".into(), &self.response_headers.remove("X-Signature").unwrap())?;
         write_header(output_buffer, ContentLength.into(), &self.response_headers.remove(ContentLength).unwrap())?;
 
-        for (name, values) in &self.response_headers {
-            write_header(output_buffer, name, values)?;
-        }
+        // for (name, values) in &self.response_headers {
+        //     write_header(output_buffer, name, values)?;
+        // }
 
         write!(output_buffer, "\r\n")?;
         Ok(())
